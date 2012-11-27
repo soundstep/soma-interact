@@ -1,0 +1,13 @@
+{
+	"name":"soma-interact",
+	"version":"0.0.1",
+	"author":"Romuald Quantin <romu@soundstep.com> (http://www.soundstep.com)",
+	"description":"Dom user events interaction handlers.",
+	"homepage": "http://soundstep.github.com/soma-interact/",
+	"keywords": ["soma-interact", "somainteract", "user", "events", "dom", "html", "click"],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/soundstep/soma-interact.git"
+	},
+	"main": "build/soma-interact.js"
+}
