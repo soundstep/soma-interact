@@ -1,7 +1,5 @@
 module.exports = function(grunt) {
 
-	grunt.loadNpmTasks('grunt-shell');
-
 	grunt.initConfig({
 		pkg:'<json:package.json>',
 		meta:{
@@ -26,7 +24,7 @@ module.exports = function(grunt) {
 		min:{
 			dest:{
 				src:['<banner:meta.banner>', 'build/soma-interact.js'],
-				dest:'build/soma-template-v<%= meta.version %>.min.js'
+				dest:'build/soma-interact-v<%= meta.version %>.min.js'
 			}
 		},
 		watch:{

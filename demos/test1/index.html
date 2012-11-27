@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+<div id="ct">
+	<div>
+		<div data-click="clickMe()">Click me</div>
+	</div>
+</div>
+
+<button data-click="clickMe()">Click me</button>
+
+<script type="text/javascript" src="../../build/soma-interact.js"></script>
+<script type="text/javascript">
+
+	var obj = {};
+
+	obj.clickMe = function(event) {
+		console.log('click', event, event.target);
+	};
+
+	soma.interact.parse(document, obj);
+
+</script>
+
+</body>
+</html>

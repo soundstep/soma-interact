@@ -2,192 +2,213 @@
 
 	'use strict';
 
-soma.template = soma.template || {};
-soma.template.version = "0.0.6";
+soma.interact = soma.interact || {};
+soma.interact.version = "0.0.1";
 
-var errors = soma.template.errors = {
-	TEMPLATE_STRING_NO_ELEMENT: "Error in soma.template, a string template requirement a second parameter: an element target - soma.template.create('string', element)",
-	TEMPLATE_NO_PARAM: "Error in soma.template, a template requires at least 1 parameter - soma.template.create(element)"
+var errors = soma.interact.errors = {
+
 };
 
-var tokenStart = '{{';
-var tokenEnd = '}}';
-var helpersObject = {};
-var helpersScopeObject = {};
-
-var settings = soma.template.settings = soma.template.settings || {};
-
-settings.autocreate = true;
-
-var tokens = settings.tokens = {
-	start: function(value) {
-		if (isDefined(value) && value !== '') {
-			tokenStart = escapeRegExp(value);
-			setRegEX(value, true);
-		}
-		return tokenStart;
-	},
-	end: function(value) {
-		if (isDefined(value) && value !== '') {
-			tokenEnd = escapeRegExp(value);
-			setRegEX(value, false);
-		}
-		return tokenEnd;
-	}
-};
+var settings = soma.interact.settings = soma.interact.settings || {};
 
 var attributes = settings.attributes = {
-	skip: "data-skip",
-	repeat: "data-repeat",
-	src: "data-src",
-	href: "data-href",
-	show: "data-show",
-	hide: "data-hide",
-	cloak: "data-cloak",
-	checked: "data-checked",
-	disabled: "data-disabled",
-	multiple: "data-multiple",
-	readonly: "data-readonly",
-	selected: "data-selected",
-	template: "data-template"
+	click: "data-click"
 };
 
-var vars = settings.vars = {
-	index: "$index",
-	key: "$key"
+function isElement(value) {
+	return value ? value.nodeType > 0 : false;
+}
+
+function isFunction(value) {
+	return value && typeof value === 'function';
+}
+
+// written by Dean Edwards, 2005
+// with input from Tino Zijdel, Matthias Miller, Diego Perini
+// http://dean.edwards.name/weblog/2005/10/add-event/
+function addEvent(element, type, handler) {
+	if (element.addEventListener) {
+		element.addEventListener(type, handler, false);
+	} else {
+		// assign each event handler a unique ID
+		if (!handler.$$guid) handler.$$guid = addEvent.guid++;
+		// create a hash table of event types for the element
+		if (!element.events) element.events = {};
+		// create a hash table of event handlers for each element/event pair
+		var handlers = element.events[type];
+		if (!handlers) {
+			handlers = element.events[type] = {};
+			// store the existing event handler (if there is one)
+			if (element["on" + type]) {
+				handlers[0] = element["on" + type];
+			}
+		}
+		// store the event handler in the hash table
+		handlers[handler.$$guid] = handler;
+		// assign a global event handler to do all the work
+		element["on" + type] = handleEvent;
+	}
+};
+// a counter used to create unique IDs
+addEvent.guid = 1;
+function removeEvent(element, type, handler) {
+	if (element.removeEventListener) {
+		element.removeEventListener(type, handler, false);
+	} else {
+		// delete the event handler from the hash table
+		if (element.events && element.events[type]) {
+			delete element.events[type][handler.$$guid];
+		}
+	}
+};
+function handleEvent(event) {
+	var returnValue = true;
+	// grab the event object (IE uses a global event object)
+	event = event || fixEvent(((this.ownerDocument || this.document || this).parentWindow || window).event);
+	// get a reference to the hash table of event handlers
+	var handlers = this.events[event.type];
+	// execute each event handler
+	for (var i in handlers) {
+		this.$$handleEvent = handlers[i];
+		if (this.$$handleEvent(event) === false) {
+			returnValue = false;
+		}
+	}
+	return returnValue;
+};
+function fixEvent(event) {
+	// add W3C standard event methods
+	event.preventDefault = fixEvent.preventDefault;
+	event.stopPropagation = fixEvent.stopPropagation;
+	return event;
+};
+fixEvent.preventDefault = function() {
+	this.returnValue = false;
+};
+fixEvent.stopPropagation = function() {
+	this.cancelBubble = true;
 };
 
-var regex = {
-	sequence: null,
-	token: null,
-	expression: null,
-	escape: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-	trim: /^[\s+]+|[\s+]+$/g,
-	repeat: /(.*)\s+in\s+(.*)/,
-	func: /(.*)\((.*)\)/,
-	params: /,\s+|,|\s+,\s+/,
-	quote: /\"|\'/g,
-	content: /[^.|^\s]/gm,
-	depth: /..\//g,
-	string: /^(\"|\')(.*)(\"|\')$/
-};
-
-function createTemplate(source, target) {
-	var element;
-	if (isString(source)) {
-		// string template
-		if (!isElement(target)) {
-			throw new Error(soma.template.errors.TEMPLATE_STRING_NO_ELEMENT);
-		}
-		target.innerHTML = source;
-		element = target;
+function getValue(scope, pattern, pathString, params, paramsFound) {
+	// string
+	if (/^(\"|\')(.*)(\"|\')$/.test(pattern)) {
+		return trimQuotes(pattern);
 	}
-	else if (isElement(source)) {
-		if (isElement(target)) {
-			// element template with target
-			target.innerHTML = source.innerHTML;
-			element = target;
-		}
-		else {
-			// element template
-			element = source;
+	// find params
+	var paramsValues = [];
+	if (!paramsFound && params) {
+		var j = -1, jl = params.length;
+		while (++j < jl) {
+			paramsValues.push(getValueFromPattern(scope, params[j]));
 		}
 	}
-	else {
-		throw new Error(soma.template.errors.TEMPLATE_NO_PARAM);
-	}
-	// existing template
-	if (getTemplate(element)) {
-		getTemplate(element).dispose();
-		templates.remove(element);
-	}
-	// create template
-	var template = new Template(element);
-	templates.put(element, template);
-	return template;
-}
-
-function getTemplate(element) {
-	if (!isElement(element)) return null;
-	return templates.get(element);
-}
-
-function renderAllTemplates() {
-	for (var key in templates.getData()) {
-		templates.get(key).render();
-	}
-}
-
-function appendHelpers(obj) {
-	if (obj === null) {
-		helpersObject = {};
-		helpersScopeObject = {};
-	}
-	if (isDefined(obj) && isObject(obj)) {
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				helpersObject[key] = helpersScopeObject[key] = obj[key];
+	else paramsValues = paramsFound;
+	// find scope
+	var scopeTarget = getScopeFromPattern(scope, pattern);
+	// remove parent string
+	pattern = pattern.replace(/..\//g, '');
+	pathString = pathString.replace(/..\//g, '');
+	if (!scopeTarget) return undefined;
+	// search path
+	var path = scopeTarget;
+	var pathParts = pathString.split(/\.|\[|\]/g);
+	if (pathParts.length > 0) {
+		var i = -1, l = pathParts.length;
+		while (++i < l) {
+			if (pathParts[i] !== "") {
+				path = path[pathParts[i]];
+			}
+			if (!isDefined(path)) {
+				// no path, search in parent
+				if (scopeTarget._parent) return getValue(scopeTarget._parent, pattern, pathString, params, paramsValues);
+				else return undefined;
 			}
 		}
 	}
-	return helpersObject;
+	// return value
+	if (!isFunction(path)) {
+		return path;
+	}
+	else {
+		return path.apply(null, paramsValues);
+	}
+	return undefined;
 }
 
-// set regex
-tokens.start(tokenStart);
-tokens.end(tokenEnd);
+function getHandlerFromPattern(object, pattern, child) {
+	var parts = pattern.match(/(.*)\((.*)\)/);
+	if (parts) {
+		var func = parts[1];
+		if (isFunction(object[func])) {
+			return object[func];
+		}
+	}
+}
+
+function parseNode(element, object) {
+	if (!isElement(element)) throw new Error('Error in soma.interact.parse, only a DOM Element can be parsed.');
+	var child = element.firstChild;
+	while (child) {
+		if (child.nodeType === 1) {
+			console.log(child, child.childNodes);
+			parseNode(child, object);
+			var attributes = [];
+			for (var attr, name, value, attrs = child.attributes, j = 0, jj = attrs && attrs.length; j < jj; j++) {
+				attr = attrs[j];
+				if (attr.specified) {
+					name = attr.name;
+					value = attr.value;
+					if (name === settings.attributes.click) {
+						console.log('found', child);
+						var handler = getHandlerFromPattern(object, attr.value, child);
+						if (handler) {
+							console.log('handler', handler);
+							addEvent(child, 'click', handler);
+						}
+					}
+				}
+			}
+		}
+		child = child.nextSibling;
+	}
+}
+
+var ready = (function(ie,d){d=document;return ie?
+	function(c){var n=d.firstChild,f=function(){try{c(n.doScroll('left'))}catch(e){setTimeout(f,10)}};f()}:/webkit|safari|khtml/i.test(navigator.userAgent)?
+	function(c){var f=function(){/loaded|complete/.test(d.readyState)?c():setTimeout(f,10)};f()}:
+	function(c){d.addEventListener("DOMContentLoaded", c, false)}
+})(/*@cc_on 1@*/);
+ready(function() {
+
+});
 
 // plugins
 
 soma.plugins = soma.plugins || {};
 
-function TemplatePlugin(instance, injector) {
-	instance.constructor.prototype.createTemplate = function(cl, domElement) {
-		if (!cl || typeof cl !== "function") {
-			throw new Error("Error creating a template, the first parameter must be a function.");
-		}
-		if (domElement && isElement(domElement)) {
-			var template = soma.template.create(domElement);
-			for (var key in template) {
-				if (typeof template[key] === 'function') {
-					cl.prototype[key] = template[key].bind(template);
-				}
-			}
-			cl.prototype.render = template.render.bind(template);
-			var childInjector = this.injector.createChild();
-			childInjector.mapValue("template", template);
-			childInjector.mapValue("scope", template.scope);
-			childInjector.mapValue("element", template.element);
-			return childInjector.createInstance(cl);
-		}
-		return null;
-	}
-	soma.template.bootstrap = function(attrValue, element, func) {
-		instance.createTemplate(func, element);
-	}
+function InteractPlugin(instance, injector) {
+
 }
 if (soma.plugins && soma.plugins.add) {
-	soma.plugins.add(TemplatePlugin);
+	soma.plugins.add(InteractPlugin);
 }
 
 // exports
-soma.template.create = createTemplate;
-soma.template.get = getTemplate;
-soma.template.renderAll = renderAllTemplates;
-soma.template.helpers = appendHelpers;
-soma.template.bootstrap = bootstrapTemplate;
+soma.interact.parse = parseNode;
+soma.interact.addEvent = addEvent;
+soma.interact.removeEvent = removeEvent;
 
 // register for AMD module
 if (typeof define === 'function' && define.amd) {
-	define("soma-template", soma.template);
+	define("soma-interact", soma.interact);
 }
 
 // export for node.js
 if (typeof exports !== 'undefined') {
 	if (typeof module !== 'undefined' && module.exports) {
-		exports = module.exports = soma.template;
+		exports = module.exports = soma.interact;
 	}
-	exports = soma.template;
+	exports = soma.interact;
 }
 
 })(this['soma'] = this['soma'] || {});
