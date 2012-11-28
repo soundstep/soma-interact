@@ -1,0 +1,9 @@
+check events there:
+http://www.w3.org/TR/DOM-Level-3-Events/events.html#Events-EventTypes-complete
+http://help.dottoro.com/larrqqck.php
+http://help.dottoro.com/ljihlcqe.php
+
+implements:
+RadioStateChange, error, contextmenu, beforeunload, beforepaste, beforecut, beforecopy, textInput, unload, submit, selectstart, select, search, scroll, resize, reset, readystatechange, copy, cut, paste, mousewheel, message, load, keypress, drag, dragenter, dragleave, dragover, dragend, dragstart, dragover, drop, hashchange, input,
+check:
+DOMActivate, DOMAttrModified, DOMCharacterDataModified, DOMFocusIn, DOMFocusOut, DOMNodeInserted, DOMNodeInsertedIntoDocument, DOMNodeRemoved, DOMNodeRemovedFromDocument, DOMSubtreeModified

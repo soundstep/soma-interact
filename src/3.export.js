@@ -10,7 +10,8 @@ if (soma.plugins && soma.plugins.add) {
 }
 
 // exports
-soma.interact.parse = parseNode;
+soma.interact.parse = parse;
+soma.interact.clear = clear;
 soma.interact.addEvent = addEvent;
 soma.interact.removeEvent = removeEvent;
 

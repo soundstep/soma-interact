@@ -1,15 +1,48 @@
 soma.interact = soma.interact || {};
-soma.interact.version = "0.0.1";
+soma.interact.version = '0.0.1';
 
 var errors = soma.interact.errors = {
 
 };
 
+var maxDepth;
+var store = [];
 var settings = soma.interact.settings = soma.interact.settings || {};
 
 var attributes = settings.attributes = {
-	click: "data-click"
+	click: 'data-click',
+	dblclick: 'data-dblclick',
+	mousedown: 'data-mousedown',
+	mouseup: 'data-mouseup',
+	mouseover: 'data-mouseover',
+	mouseout: 'data-mouseout',
+	mousemove: 'data-mousemove',
+	mouseenter: 'data-mouseenter',
+	mouseleave: 'data-mouseleave',
+	keydown: 'data-keydown',
+	keyup: 'data-keyup',
+	focus: 'data-focus',
+	blur: 'data-blur',
+	change: 'data-change'
 };
+
+var events = {};
+events[attributes.click] = 'click';
+events[attributes.dblclick] = 'dblclick';
+events[attributes.mousedown] = 'mousedown';
+events[attributes.mouseup] = 'mouseup';
+events[attributes.mouseover] = 'mouseover';
+events[attributes.mouseout] = 'mouseout';
+events[attributes.mousemove] = 'mousemove';
+events[attributes.mouseenter] = 'mouseenter';
+events[attributes.mouseleave] = 'mouseleave';
+events[attributes.keydown] = 'keydown';
+events[attributes.keyup] = 'keyup';
+events[attributes.focus] = 'focus';
+events[attributes.blur] = 'blur';
+events[attributes.change] = 'change';
+
+// todo: change, keyboard, focus, blur
 
 function isElement(value) {
 	return value ? value.nodeType > 0 : false;
@@ -85,51 +118,25 @@ fixEvent.stopPropagation = function() {
 	this.cancelBubble = true;
 };
 
-function getValue(scope, pattern, pathString, params, paramsFound) {
-	// string
-	if (/^(\"|\')(.*)(\"|\')$/.test(pattern)) {
-		return trimQuotes(pattern);
-	}
-	// find params
-	var paramsValues = [];
-	if (!paramsFound && params) {
-		var j = -1, jl = params.length;
-		while (++j < jl) {
-			paramsValues.push(getValueFromPattern(scope, params[j]));
-		}
-	}
-	else paramsValues = paramsFound;
-	// find scope
-	var scopeTarget = getScopeFromPattern(scope, pattern);
-	// remove parent string
-	pattern = pattern.replace(/..\//g, '');
-	pathString = pathString.replace(/..\//g, '');
-	if (!scopeTarget) return undefined;
-	// search path
-	var path = scopeTarget;
-	var pathParts = pathString.split(/\.|\[|\]/g);
-	if (pathParts.length > 0) {
-		var i = -1, l = pathParts.length;
-		while (++i < l) {
-			if (pathParts[i] !== "") {
-				path = path[pathParts[i]];
+// jquery contains
+var contains = document.documentElement.contains ?
+	function( a, b ) {
+		var adown = a.nodeType === 9 ? a.documentElement : a,
+			bup = b && b.parentNode;
+		return a === bup || !!( bup && bup.nodeType === 1 && adown.contains && adown.contains(bup) );
+	} :
+	document.documentElement.compareDocumentPosition ?
+		function( a, b ) {
+			return b && !!( a.compareDocumentPosition( b ) & 16 );
+		} :
+		function( a, b ) {
+			while ( (b = b.parentNode) ) {
+				if ( b === a ) {
+					return true;
+				}
 			}
-			if (!isDefined(path)) {
-				// no path, search in parent
-				if (scopeTarget._parent) return getValue(scopeTarget._parent, pattern, pathString, params, paramsValues);
-				else return undefined;
-			}
-		}
-	}
-	// return value
-	if (!isFunction(path)) {
-		return path;
-	}
-	else {
-		return path.apply(null, paramsValues);
-	}
-	return undefined;
-}
+			return false;
+		};
 
 function getHandlerFromPattern(object, pattern, child) {
 	var parts = pattern.match(/(.*)\((.*)\)/);
@@ -141,33 +148,59 @@ function getHandlerFromPattern(object, pattern, child) {
 	}
 }
 
-function parseNode(element, object) {
+function parse(element, object, depth) {
+	maxDepth = depth === undefined ? Number.MAX_VALUE : depth;
+	parseNode(element, object, 0);
+}
+
+function parseNode(element, object, depth) {
 	if (!isElement(element)) throw new Error('Error in soma.interact.parse, only a DOM Element can be parsed.');
+	parseAttributes(element, object);
 	var child = element.firstChild;
-	console.log('CHILD', child);
 	while (child) {
 		if (child.nodeType === 1) {
-			console.log(child, child.childNodes);
-			parseNode(child);
-			var attributes = [];
-			for (var attr, name, value, attrs = child.attributes, j = 0, jj = attrs && attrs.length; j < jj; j++) {
-				attr = attrs[j];
-				if (attr.specified) {
-					name = attr.name;
-					value = attr.value;
-					if (name === settings.attributes.click) {
-						console.log('found', child);
-						var handler = getHandlerFromPattern(object, attr.value, child);
-						if (handler) {
-							console.log('handler', handler);
-							addEvent(child, 'click', handler);
-						}
-					}
-				}
-			}
+			if (depth < maxDepth) parseNode(child, object, depth++);
+			parseAttributes(child, object);
 		}
 		child = child.nextSibling;
 	}
+}
+
+function parseAttributes(element, object) {
+	var attributes = [];
+	for (var attr, name, value, attrs = element.attributes, j = 0, jj = attrs && attrs.length; j < jj; j++) {
+		attr = attrs[j];
+		if (attr.specified) {
+			name = attr.name;
+			value = attr.value;
+			if (events[name]) {
+				var handler = getHandlerFromPattern(object, value, element);
+				if (handler) {
+					addEvent(element, events[name], handler);
+					addToStore(element, events[name], handler);
+				}
+			}
+		}
+	}
+}
+
+function clear(element) {
+	var i = store.length, l = 0;
+	while (--i >= l) {
+		var item = store[i];
+		if (element === item.element || contains(element, item.element)) {
+			removeEvent(item.element, item.type, item.handler);
+			store.splice(i, 1);
+		}
+	}
+}
+
+function addToStore(element, type, handler) {
+	store.push({element:element, type:type, handler:handler});
+}
+
+function removeFromStore() {
+
 }
 
 var ready = (function(ie,d){d=document;return ie?

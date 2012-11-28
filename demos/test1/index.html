@@ -3,26 +3,99 @@
 <head>
 	<title></title>
 </head>
+<style type="text/css">
+	html {
+		font-family: Helvetica, Arial, sans-serif;
+		font-size: 12px;
+	}
+	#ct {
+		background: #a6b779;
+		margin: 0 0 10px 0;
+		padding: 5px 5px 0px 5px;
+	}
+	#ct > div > div {
+		background: gold;
+		float: left;
+		width: 120px;
+		height: 40px;
+		margin: 0px 5px 5px 0px;
+		padding: 5px;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		user-select: none;
+	}
+	#ct > div > div > input {
+		width: 115px;
+	}
+	#output {
+		background: #dcdcdc;
+		height: 200px;
+		overflow: auto;
+		padding: 5px;
+	}
+	.grey {
+		color: #777777;
+	}
+	.clear {
+		clear: both;
+	}
+</style>
 <body>
 
 <div id="ct">
 	<div>
-		<div data-click="clickMe()">Click me</div>
+		<div data-click="handler()">click</div>
+		<div data-dblclick="handler()">double click</div>
+		<div data-mousedown="handler()">mouse down</div>
+		<div data-mouseup="handler()">mouse up</div>
+		<div data-mouseover="handler()">mouse over</div>
+		<div data-mouseout="handler()">mouse out</div>
+		<div data-mousemove="handler()">mouse move</div>
+		<div data-mouseenter="handler()">mouse enter</div>
+		<div data-mouseleave="handler()">mouse leave</div>
+		<div><input data-keydown="handler()" type="text" value="keydown"></div>
+		<div><input data-keyup="handler()" type="text" value="keyup"></div>
+		<div><input data-focus="handler()" type="text" value="focus"></div>
+		<div><input data-blur="handler()" type="text" value="blur"></div>
+		<div><input data-change="handler()" type="checkbox" value="change"></div>
 	</div>
+	<div class="clear"></div>
 </div>
 
-<button data-click="clickMe()">Click me</button>
+<div id="output"></div>
 
 <script type="text/javascript" src="../../build/soma-interact.js"></script>
 <script type="text/javascript">
 
-	var obj = {};
+	var output = document.getElementById('output');
 
-	obj.clickMe = function(event) {
-		console.log('click', event, event.target);
+	function handler(event) {
+		console.log(event.type, event, event.target);
+		output.innerHTML = new Date().getTime() + ": " + "<strong>[" + event.type + "]</strong> <span class=grey>" + escapeHTML(getHTML(event.target, 1)) + '</span><br/>' + output.innerHTML;
 	};
 
-	soma.interact.parse(document, obj);
+	soma.interact.parse(document, this);
+	//soma.interact.addEvent(document.getElementById('click'), 'click', obj.handler);
+	//soma.interact.removeEvent(document.getElementById('click'), 'click', obj.handler);
+	//soma.interact.clear(document.getElementById('click'));
+
+
+	function escapeHTML(value) {
+		return value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+	}
+	function getHTML(who, deep){
+		if(!who || !who.tagName) return '';
+		var txt, ax, el= document.createElement("div");
+		el.appendChild(who.cloneNode(false));
+		txt = el.innerHTML;
+		if(deep){
+			ax= txt.indexOf('>')+1;
+			txt= txt.substring(0, ax)+who.innerHTML+ txt.substring(ax);
+		}
+		el= null;
+		return txt;
+	}
+
 
 </script>
 
