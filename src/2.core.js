@@ -8,41 +8,17 @@ var errors = soma.interact.errors = {
 var maxDepth;
 var store = [];
 var settings = soma.interact.settings = soma.interact.settings || {};
+var attributes = settings.attributes = {};
+settings.prefix = 'data';
 
-var attributes = settings.attributes = {
-	click: 'data-click',
-	dblclick: 'data-dblclick',
-	mousedown: 'data-mousedown',
-	mouseup: 'data-mouseup',
-	mouseover: 'data-mouseover',
-	mouseout: 'data-mouseout',
-	mousemove: 'data-mousemove',
-	mouseenter: 'data-mouseenter',
-	mouseleave: 'data-mouseleave',
-	keydown: 'data-keydown',
-	keyup: 'data-keyup',
-	focus: 'data-focus',
-	blur: 'data-blur',
-	change: 'data-change'
-};
+var eventString = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup focus blur change select selectstart scroll copy cut paste mousewheel keypress error';
+var eventsArray = eventString.split(' ');
+var i = -1, l = eventsArray.length;
+while(++i < l) {
+	attributes[settings.prefix + "-" + eventsArray[i]] = eventsArray[i];
+}
 
-var events = {};
-events[attributes.click] = 'click';
-events[attributes.dblclick] = 'dblclick';
-events[attributes.mousedown] = 'mousedown';
-events[attributes.mouseup] = 'mouseup';
-events[attributes.mouseover] = 'mouseover';
-events[attributes.mouseout] = 'mouseout';
-events[attributes.mousemove] = 'mousemove';
-events[attributes.mouseenter] = 'mouseenter';
-events[attributes.mouseleave] = 'mouseleave';
-events[attributes.keydown] = 'keydown';
-events[attributes.keyup] = 'keyup';
-events[attributes.focus] = 'focus';
-events[attributes.blur] = 'blur';
-events[attributes.change] = 'change';
-
-// todo: change, keyboard, focus, blur
+console.log(attributes);
 
 function isElement(value) {
 	return value ? value.nodeType > 0 : false;
@@ -173,11 +149,11 @@ function parseAttributes(element, object) {
 		if (attr.specified) {
 			name = attr.name;
 			value = attr.value;
-			if (events[name]) {
+			if (settings.attributes[name]) {
 				var handler = getHandlerFromPattern(object, value, element);
 				if (handler) {
-					addEvent(element, events[name], handler);
-					addToStore(element, events[name], handler);
+					addEvent(element, settings.attributes[name], handler);
+					addToStore(element, settings.attributes[name], handler);
 				}
 			}
 		}
@@ -197,10 +173,6 @@ function clear(element) {
 
 function addToStore(element, type, handler) {
 	store.push({element:element, type:type, handler:handler});
-}
-
-function removeFromStore() {
-
 }
 
 var ready = (function(ie,d){d=document;return ie?

@@ -13,18 +13,21 @@
 		margin: 0 0 10px 0;
 		padding: 5px 5px 0px 5px;
 	}
-	#ct > div > div {
+	.content > div > div {
 		background: gold;
 		float: left;
 		width: 120px;
 		height: 40px;
 		margin: 0px 5px 5px 0px;
 		padding: 5px;
-		-webkit-user-select: none;
-		-khtml-user-select: none;
-		user-select: none;
 	}
-	#ct > div > div > input {
+	.content > div > div::selection {
+		background-color: transparent;
+	}
+	.content > div > div.selection-enabled::selection {
+		background-color: initial;
+	}
+	.content > div > div > input {
 		width: 115px;
 	}
 	#output {
@@ -33,17 +36,31 @@
 		overflow: auto;
 		padding: 5px;
 	}
+	#imgError {
+		display: none;
+	}
+	.scroll {
+		overflow: auto;
+	}
 	.grey {
 		color: #777777;
 	}
-	.clear {
+	.cf:before,
+	.cf:after {
+		content: " "; /* 1 */
+		display: table; /* 2 */
+	}
+	.cf:after {
 		clear: both;
+	}
+	.cf {
+		*zoom: 1;
 	}
 </style>
 <body>
 
-<div id="ct">
-	<div>
+<div id="ct" class="content">
+	<div class="cf">
 		<div data-click="handler()">click</div>
 		<div data-dblclick="handler()">double click</div>
 		<div data-mousedown="handler()">mouse down</div>
@@ -53,11 +70,20 @@
 		<div data-mousemove="handler()">mouse move</div>
 		<div data-mouseenter="handler()">mouse enter</div>
 		<div data-mouseleave="handler()">mouse leave</div>
+		<div data-mousewheel="handler()">mouse wheel</div>
+		<div data-selectstart="handler()" class="selection-enabled">select start</div>
+		<div data-scroll="handler()" class="scroll">scroll scroll scroll scroll scroll scroll scroll scroll scroll scroll scroll</div>
 		<div><input data-keydown="handler()" type="text" value="keydown"></div>
 		<div><input data-keyup="handler()" type="text" value="keyup"></div>
+		<div><input data-keypress="handler()" type="text" value="keypress"></div>
 		<div><input data-focus="handler()" type="text" value="focus"></div>
 		<div><input data-blur="handler()" type="text" value="blur"></div>
 		<div><input data-change="handler()" type="checkbox" value="change"></div>
+		<div><input data-select="handler()" type="text" value="select"></div>
+		<div><input data-copy="handler()" type="text" value="copy"></div>
+		<div><input data-cut="handler()" type="text" value="cut"></div>
+		<div><input data-paste="handler()" type="text" value="paste"></div>
+		<div><button data-click="insertImage()">make error</button><img id="imgError" data-error="handler()"></div>
 	</div>
 	<div class="clear"></div>
 </div>
@@ -71,8 +97,13 @@
 
 	function handler(event) {
 		console.log(event.type, event, event.target);
-		output.innerHTML = new Date().getTime() + ": " + "<strong>[" + event.type + "]</strong> <span class=grey>" + escapeHTML(getHTML(event.target, 1)) + '</span><br/>' + output.innerHTML;
+		output.innerHTML = new Date().getTime() + ": " + "<strong>[" + event.type + "]</strong> <span class=grey>" + escapeHTML(getHTML(event.currentTarget, 1)) + '</span><br/>' + output.innerHTML;
 	};
+
+	function insertImage(event) {
+		console.log('insert');
+		document.getElementById('imgError').setAttribute('src', 'non-existing.jpg');
+	}
 
 	soma.interact.parse(document, this);
 	//soma.interact.addEvent(document.getElementById('click'), 'click', obj.handler);
