@@ -4,7 +4,7 @@ http://help.dottoro.com/larrqqck.php
 http://help.dottoro.com/ljihlcqe.php
 
 implements:
-RadioStateChange, contextmenu, beforeunload, beforepaste, beforecut, beforecopy, textInput, unload, submit, search, resize, reset, readystatechange, message, load, drag, dragenter, dragleave, dragover, dragend, dragstart, dragover, drop, hashchange, input,
+onpropertychange RadioStateChange, beforeunload, beforepaste, beforecut, beforecopy, unload, submit, search, resize, reset, readystatechange, message, load, drag, dragenter, dragleave, dragover, dragend, dragstart, dragover, drop
 check:
 DOMActivate, DOMAttrModified, DOMCharacterDataModified, DOMFocusIn, DOMFocusOut, DOMNodeInserted, DOMNodeInsertedIntoDocument, DOMNodeRemoved, DOMNodeRemovedFromDocument, DOMSubtreeModified
 

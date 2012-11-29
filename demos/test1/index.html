@@ -21,9 +21,9 @@
 		margin: 0px 5px 5px 0px;
 		padding: 5px;
 	}
-	.content > div > div::selection {
-		background-color: transparent;
-	}
+	/*.content > div > div::selection {*/
+		/*background-color: transparent;*/
+	/*}*/
 	.content > div > div.selection-enabled::selection {
 		background-color: initial;
 	}
@@ -45,6 +45,9 @@
 	.grey {
 		color: #777777;
 	}
+	.drag-pointer:hover {
+		cursor: move;
+	}
 	.cf:before,
 	.cf:after {
 		content: " "; /* 1 */
@@ -57,7 +60,7 @@
 		*zoom: 1;
 	}
 </style>
-<body>
+<body data-hashchange="handler()">
 
 <div id="ct" class="content">
 	<div class="cf">
@@ -71,8 +74,12 @@
 		<div data-mouseenter="handler()">mouse enter</div>
 		<div data-mouseleave="handler()">mouse leave</div>
 		<div data-mousewheel="handler()">mouse wheel</div>
-		<div data-selectstart="handler()" class="selection-enabled">select start</div>
+		<div data-selectstart="handler()" class="selection-enabled">select start (text selection)</div>
 		<div data-scroll="handler()" class="scroll">scroll scroll scroll scroll scroll scroll scroll scroll scroll scroll scroll</div>
+		<div data-contextmenu="handler()">context menu (right click)</div>
+		<div data-dragenter="handler()" draggable="true" class="drag-pointer">drag enter</div>
+		<div data-drag="handler()" draggable="true" class="drag-pointer">drag</div>
+		<div data-dragleave="handler()" draggable="true" class="drag-pointer">drag leave</div>
 		<div><input data-keydown="handler()" type="text" value="keydown"></div>
 		<div><input data-keyup="handler()" type="text" value="keyup"></div>
 		<div><input data-keypress="handler()" type="text" value="keypress"></div>
@@ -83,10 +90,14 @@
 		<div><input data-copy="handler()" type="text" value="copy"></div>
 		<div><input data-cut="handler()" type="text" value="cut"></div>
 		<div><input data-paste="handler()" type="text" value="paste"></div>
+		<div><input data-input="handler()" type="text" value="input"></div>
+		<div><input data-textinput="handler()" type="text" value="textinput"></div>
 		<div><button data-click="insertImage()">make error</button><img id="imgError" data-error="handler()"></div>
 	</div>
 	<div class="clear"></div>
 </div>
+
+drag, dragenter, dragleave, dragover, dragend, dragstart, dragover, drop
 
 <div id="output"></div>
 
@@ -96,13 +107,18 @@
 	var output = document.getElementById('output');
 
 	function handler(event) {
-		console.log(event.type, event, event.target);
+//		console.log(event.type, event, event.target);
 		output.innerHTML = new Date().getTime() + ": " + "<strong>[" + event.type + "]</strong> <span class=grey>" + escapeHTML(getHTML(event.currentTarget, 1)) + '</span><br/>' + output.innerHTML;
 	};
 
 	function insertImage(event) {
 		document.getElementById('imgError').setAttribute('src', 'non-existing.jpg');
 	}
+
+	function changeHash(event) {
+		console.log('change');
+		document.location.hash = new Date().getTime();
+	};
 
 	soma.interact.parse(document, this);
 	//soma.interact.addEvent(document.getElementById('click'), 'click', obj.handler);

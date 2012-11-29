@@ -15,7 +15,7 @@ var settings = soma.interact.settings = soma.interact.settings || {};
 var attributes = settings.attributes = {};
 settings.prefix = 'data';
 
-var eventString = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup focus blur change select selectstart scroll copy cut paste mousewheel keypress error';
+var eventString = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup focus blur change select selectstart scroll copy cut paste mousewheel keypress error contextmenu input textinput drag dragenter dragleave dragover dragend dragstart dragover drop';
 var eventsArray = eventString.split(' ');
 var i = -1, l = eventsArray.length;
 while(++i < l) {
@@ -128,12 +128,12 @@ function getHandlerFromPattern(object, pattern, child) {
 
 function parse(element, object, depth) {
 	maxDepth = depth === undefined ? Number.MAX_VALUE : depth;
-	parseNode(element, object, 0);
+	parseNode(element, object, 0, true);
 }
 
-function parseNode(element, object, depth) {
+function parseNode(element, object, depth, isRoot) {
 	if (!isElement(element)) throw new Error('Error in soma.interact.parse, only a DOM Element can be parsed.');
-	parseAttributes(element, object);
+	if (isRoot) parseAttributes(element, object);
 	var child = element.firstChild;
 	while (child) {
 		if (child.nodeType === 1) {
