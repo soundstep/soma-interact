@@ -22,8 +22,6 @@ while(++i < l) {
 	attributes[settings.prefix + "-" + eventsArray[i]] = eventsArray[i];
 }
 
-console.log(attributes);
-
 function isElement(value) {
 	return value ? value.nodeType > 0 : false;
 }
