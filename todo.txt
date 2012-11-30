@@ -2,14 +2,3 @@ check events there:
 http://www.w3.org/TR/DOM-Level-3-Events/events.html#Events-EventTypes-complete
 http://help.dottoro.com/larrqqck.php
 http://help.dottoro.com/ljihlcqe.php
-
-implements:
-onpropertychange RadioStateChange, beforeunload, beforepaste, beforecut, beforecopy, unload, submit, search, resize, reset, readystatechange, message, load, drag, dragenter, dragleave, dragover, dragend, dragstart, dragover, drop
-check:
-DOMActivate, DOMAttrModified, DOMCharacterDataModified, DOMFocusIn, DOMFocusOut, DOMNodeInserted, DOMNodeInsertedIntoDocument, DOMNodeRemoved, DOMNodeRemovedFromDocument, DOMSubtreeModified
-
-
-
-click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup focus blur change
-
-

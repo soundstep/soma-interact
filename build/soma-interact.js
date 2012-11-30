@@ -15,7 +15,7 @@ var settings = soma.interact.settings = soma.interact.settings || {};
 var attributes = settings.attributes = {};
 settings.prefix = 'data';
 
-var eventString = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup focus blur change select selectstart scroll copy cut paste mousewheel keypress error contextmenu input textinput drag dragenter dragleave dragover dragend dragstart dragover drop';
+var eventString = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup focus blur change select selectstart scroll copy cut paste mousewheel keypress error contextmenu input textinput drag dragenter dragleave dragover dragend dragstart dragover drop load submit reset search resize beforepaste beforecut beforecopy';
 var eventsArray = eventString.split(' ');
 var i = -1, l = eventsArray.length;
 while(++i < l) {
@@ -176,15 +176,6 @@ function clear(element) {
 function addToStore(element, type, handler) {
 	store.push({element:element, type:type, handler:handler});
 }
-
-var ready = (function(ie,d){d=document;return ie?
-	function(c){var n=d.firstChild,f=function(){try{c(n.doScroll('left'))}catch(e){setTimeout(f,10)}};f()}:/webkit|safari|khtml/i.test(navigator.userAgent)?
-	function(c){var f=function(){/loaded|complete/.test(d.readyState)?c():setTimeout(f,10)};f()}:
-	function(c){d.addEventListener("DOMContentLoaded", c, false)}
-})(/*@cc_on 1@*/);
-ready(function() {
-
-});
 
 // plugins
 
