@@ -134,6 +134,7 @@ function parse(element, object, depth) {
 function parseNode(element, object, depth, isRoot) {
 	if (!isElement(element)) throw new Error('Error in soma.interact.parse, only a DOM Element can be parsed.');
 	if (isRoot) parseAttributes(element, object);
+	if (maxDepth === 0) return;
 	var child = element.firstChild;
 	while (child) {
 		if (child.nodeType === 1) {
