@@ -134,8 +134,10 @@ function parseNode(element, object, depth, isRoot) {
 	var child = element.firstChild;
 	while (child) {
 		if (child.nodeType === 1) {
-			if (depth < maxDepth) parseNode(child, object, depth++);
-			parseAttributes(child, object);
+			if (depth < maxDepth) {
+				parseNode(child, object, ++depth);
+				parseAttributes(child, object);
+			}
 		}
 		child = child.nextSibling;
 	}
